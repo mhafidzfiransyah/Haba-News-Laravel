@@ -28,7 +28,7 @@
             </div>
             <div class="flex items-center space-x-6 font-medium">
                 <a href="{{ route('beranda') }}" class="hover:text-yellow-400 border-b-2 border-yellow-400 pb-1">Beranda</a>
-                <a href="#" class="hover:text-yellow-400 transition">About</a>
+                <a href="{{ route('about') }}" class="hover:text-yellow-400 transition">About</a>
                 <a href="#" class="hover:text-yellow-400 transition">Contact</a>
                 <a href="#" class="btn-yellow px-6 py-2 rounded font-bold hover:brightness-110 transition shadow">Login</a>
             </div>
@@ -166,13 +166,38 @@
 
     {{-- FOOTER --}}
     <footer class="bg-primary-dark text-gray-300 py-12 mt-20">
-        <div class="container mx-auto px-4 text-center text-sm">
-            <p class="mb-4 opacity-80">Kabar yang disaring, bukan sekedar dikirim.</p>
-            <div class="border-t border-gray-600 mt-6 pt-6 text-xs opacity-60">
-                &copy; 2025 Haba News. All rights reserved.
+        <div class="container mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-8 text-sm mb-10">
+            <div>
+                <h3 class="text-yellow-500 text-xl font-bold mb-4">Haba News</h3>
+                <p class="mb-4 opacity-80 leading-relaxed">Kabar yang disaring, bukan sekedar dikirim.</p>
+            </div>
+            <div>
+                <h4 class="text-white font-bold mb-4 text-lg">Katagori</h4>
+                <ul class="space-y-2 opacity-80">
+                    <li><a href="#" class="hover:text-yellow-400 transition">Politik</a></li>
+                    <li><a href="#" class="hover:text-yellow-400 transition">Teknologi</a></li>
+                    <li><a href="#" class="hover:text-yellow-400 transition">Ekonomi</a></li>
+                    <li><a href="#" class="hover:text-yellow-400 transition">Kesehatan</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="text-white font-bold mb-4 text-lg">Tentang</h4>
+                <ul class="space-y-2 opacity-80">
+                    <li><a href="{{ route('about') }}" class="text-yellow-400 font-bold">Tentang Kami</a></li>
+                    <li><a href="#" class="hover:text-yellow-400 transition">Kebijakan Privasi Syarat & Ketetntuan</a></li>
+                    <li><a href="#" class="hover:text-yellow-400 transition">Hubungan Kami</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="text-white font-bold mb-4 text-lg">Newsletter</h4>
+                <p class="mb-4 opacity-80">Dapatkan berita terbaru langsung di inbox Anda</p>
             </div>
         </div>
+        <div class="border-t border-gray-600 pt-6 text-center text-xs opacity-60">
+            &copy; 2025 Haba News. All rights reserved
+        </div>
     </footer>
+
 
 </body>
 </html>

@@ -17,3 +17,15 @@ Route::get('/kategori/{slug}', [BerandaController::class, 'index'])->name('kateg
 // 2. Route Berita (Halaman Detail / Baca Berita)
 // Kita arahkan ke BeritaController method 'show'
 Route::get('/berita/{id}', [BeritaController::class, 'show'])->name('berita.detail');
+Route::get('/about', [BerandaController::class, 'about'])->name('about');
+
+// ROUTE GRUP ADMIN
+Route::prefix('admin')->group(function () {
+    Route::get('/dashboard', [App\Http\Controllers\AdminController::class, 'dashboard'])->name('admin.dashboard');
+    Route::get('/berita', [App\Http\Controllers\AdminController::class, 'berita'])->name('admin.berita');
+
+    // Route Baru
+    Route::get('/users', [App\Http\Controllers\AdminController::class, 'users'])->name('admin.users');
+    Route::get('/users/{id}/activity', [App\Http\Controllers\AdminController::class, 'userActivity'])->name('admin.users.activity');
+});
+
