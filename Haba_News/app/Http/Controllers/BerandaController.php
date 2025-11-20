@@ -3,68 +3,85 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\News;
+use App\Models\Visitor;
+use Carbon\Carbon;
 
 class BerandaController extends Controller
 {
-    // ... (Method index biarkan seperti yang terakhir kita revisi) ...
-
     public function index(Request $request, $slug = null)
     {
-        // ... (Kode index yang pagination & verified tadi biarkan disini) ...
-        // Supaya tidak kepanjangan, saya tidak tulis ulang method index-nya ya.
-        // Pastikan kode index kamu yang terakhir (Pagination loop) tetap ada.
-        
-        // SAYA TULIS ULANG BIAR PASTI KAMU GAK BINGUNG NARUHNYA DIMANA
-        // --- COPY DARI SINI JIKA MAU FULL REPLACE ---
-        
-        // 1. DATA HERO
-        $heroNews = [
-            'id' => 999, 'title' => 'Bahlil Mencampurkan Pertalite dengan Etanol',
-            'desc' => 'Mentri ESDM, Bahlil Bahlul berkata dalam sebuah wawancara...',
-            'category' => 'Politik',
-            'image' => 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?q=80&w=1000&auto=format&fit=crop',
-            'author' => 'Verified', 'verified' => true
-        ];
+        // 1. TRACKING VISITOR
+        Visitor::firstOrCreate([
+            'ip_address' => $request->ip(),
+            'visit_date' => Carbon::today()
+        ], [
+            'user_agent' => $request->header('User-Agent')
+        ]);
 
-        // 2. DATA SUB HERO
-        $subHeroNews = [
-            ['id' => 881, 'title' => 'Ijazah Jokowi Ternyata Palsu', 'desc' => '...', 'category' => 'Hukum', 'image' => 'https://images.unsplash.com/photo-1555848962-6e79363ec58f?q=80&w=600&auto=format&fit=crop', 'verified' => true],
-            ['id' => 882, 'title' => 'Skandal Korupsi Terbesar Tahun Ini', 'desc' => '...', 'category' => 'Hukum', 'image' => 'https://images.unsplash.com/photo-1505664194779-8beaceb93744?q=80&w=600&auto=format&fit=crop', 'verified' => true]
-        ];
-
-        // 3. LIST BERITA
-        $allNews = [];
-        for ($i = 1; $i <= 12; $i++) {
-            $allNews[] = [
-                'id' => $i,
-                'title' => "Berita Nomor $i: Bahlil dan Jokowi Bersekongkol?",
-                'desc' => "Ini adalah deskripsi singkat...",
-                'category' => ($i % 2 == 0) ? 'Teknologi' : 'Politik', 
-                'image' => 'https://images.unsplash.com/photo-1612151855475-877969f4a6cc?q=80&w=600&auto=format&fit=crop',
-                'verified' => true 
-            ];
+        // 2. LOGIKA HERO (HOT NEWS) - SELALU DIAMBIL
+        // Kita ambil berita yang statusnya HOT, terlepas dari filter kategori
+        $baseQuery = News::published();
+        
+        $heroNews = (clone $baseQuery)->where('is_hot', true)->latest()->first();
+        // Fallback: Jika tidak ada berita hot, ambil sembarang berita terbaru
+        if (!$heroNews) {
+            $heroNews = (clone $baseQuery)->latest()->first();
         }
-        $categories = ['Politik', 'Teknologi', 'Ekonomi', 'Kesehatan', 'Budaya', 'Entertainment', 'Sport', 'Otomotif'];
 
-        // LOGIKA
-        $activeCategory = $slug ? ucfirst($slug) : 'Semua';
+        // 3. LOGIKA SUB HERO (2 Berita Samping Hero)
+        $subHeroNews = collect([]);
+        if ($heroNews) {
+            $subHeroNews = (clone $baseQuery)
+                            ->where('id', '!=', $heroNews->id)
+                            ->latest()
+                            ->take(2)
+                            ->get();
+        }
+
+        // 4. LOGIKA LIST BERITA BAWAH (FILTERING)
+        $query = News::published()->latest(); // Reset query untuk list bawah
+        $activeCategory = 'Semua';
+
+        // Filter Kategori (Slug)
         if ($slug && strtolower($slug) !== 'semua') {
-            $filteredNews = array_filter($allNews, fn($item) => strtolower($item['category']) === strtolower($activeCategory));
-        } else {
-            $filteredNews = $allNews;
+            $cleanSlug = str_replace('-', ' ', $slug);
+            $activeCategory = ucwords($cleanSlug);
+            $query->where('category', 'LIKE', "%{$cleanSlug}%");
         }
 
-        $page = $request->get('page', 1); 
-        $perPage = 4; 
-        $total = count($filteredNews);
-        $totalPages = ceil($total / $perPage);
-        $offset = ($page - 1) * $perPage;
-        $newsList = array_slice($filteredNews, $offset, $perPage);
+        // Filter Search
+        if ($request->has('q')) {
+            $search = $request->q;
+            $query->where(function($q) use ($search) {
+                $q->where('title', 'LIKE', "%{$search}%")
+                  ->orWhere('desc', 'LIKE', "%{$search}%");
+            });
+        }
 
-        return view('Beranda.semua', compact('heroNews', 'subHeroNews', 'categories', 'newsList', 'activeCategory', 'page', 'totalPages'));
+        // Exclude Hero & Subhero agar tidak muncul dobel di bawah
+        // TAPI: Kalau sedang difilter kategori, kita biarkan saja muncul lagi di bawah
+        // supaya user tetap bisa melihat berita tersebut dalam konteks kategorinya.
+        // (Opsional: kalau mau strict exclude, uncomment baris bawah ini)
+        // if ($activeCategory === 'Semua') {
+             $excludeIds = collect([$heroNews->id ?? 0])->merge($subHeroNews->pluck('id'));
+             $query->whereNotIn('id', $excludeIds);
+        // }
+
+        $newsList = $query->paginate(6);
+
+        // 5. LOGIKA KATEGORI DINAMIS (Auto-Add)
+        // Ambil semua kategori unik yang ada di database berita yang sudah publish
+        // Urutkan sesuai abjad
+        $categories = News::published()
+                        ->select('category')
+                        ->distinct()
+                        ->orderBy('category', 'ASC')
+                        ->pluck('category');
+
+        return view('Beranda.semua', compact('heroNews', 'subHeroNews', 'categories', 'newsList', 'activeCategory'));
     }
-
-    // --- METHOD BARU UNTUK ABOUT ---
+    
     public function about()
     {
         return view('About.index');

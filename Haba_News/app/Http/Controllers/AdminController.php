@@ -3,115 +3,113 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\News;
+use App\Models\Visitor;
+use App\Models\User;
+use App\Models\ActivityLog;
+use App\Services\NewsService;
+use Carbon\Carbon;
 
 class AdminController extends Controller
 {
     public function dashboard()
     {
-        // 1. Statistik Kartu
+        // Statistik
         $stats = [
-            'total_news' => 1240,
-            'total_visitors' => 85200, // Total visitor
-            'total_users' => 350,
-            'pending_reports' => 5 // Laporan konten dari user
+            'total_news' => News::count(), // Ini otomatis berubah kalau ada yang dihapus
+            'total_visitors' => Visitor::count(),
+            'total_users' => User::count(),
+            'pending_reports' => News::where('status', 'draft')->count()
         ];
 
-        // 2. Data untuk Grafik Pengunjung (Chart.js)
-        $chartData = [
-            'labels' => ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul'],
-            'data' => [12000, 19000, 3000, 5000, 20000, 35000, 45000] // Contoh data naik turun
-        ];
+        // Grafik
+        $labels = [];
+        $data = [];
+        for ($i = 6; $i >= 0; $i--) {
+            $date = Carbon::now()->subDays($i);
+            $labels[] = $date->format('d M');
+            $data[] = Visitor::whereDate('visit_date', $date->toDateString())->count();
+        }
+        $chartData = ['labels' => $labels, 'data' => $data];
 
-        // 3. Berita Draft (Butuh Verifikasi)
-        $pendingNews = [
-            [
-                'id' => 101,
-                'title' => 'Ditemukan Cadangan Minyak Baru di Laut Jawa',
-                'source' => 'Jurnalis Lapangan: Budi Santoso',
-                'image' => 'https://images.unsplash.com/photo-1518459384564-dc1b27c03361?q=80&w=200&auto=format&fit=crop',
-                'date' => 'Baru saja',
-                'category' => 'Ekonomi'
-            ],
-            [
-                'id' => 102,
-                'title' => 'Tutorial Laravel 12 Lengkap Untuk Pemula',
-                'source' => 'Kontributor: Programmer Zaman Now',
-                'image' => 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=200&auto=format&fit=crop',
-                'date' => '10 Menit lalu',
-                'category' => 'Teknologi'
-            ]
-        ];
+        // Berita Draft
+        $pendingNews = News::where('status', 'draft')
+                            ->orderBy('ai_trust_score', 'asc') 
+                            ->get();
 
-        // 4. Log Aktivitas User Terbaru
-        $userActivities = [
-            [
-                'user' => 'Asep Knalpot',
-                'avatar' => 'https://i.pravatar.cc/150?u=asep',
-                'action' => 'Mengomentari berita',
-                'target' => '"Harga Cabai Naik Drastis"',
-                'time' => '2 Menit lalu',
-                'type' => 'comment'
-            ],
-            [
-                'user' => 'Siti Aminah',
-                'avatar' => 'https://i.pravatar.cc/150?u=siti',
-                'action' => 'Menyukai postingan',
-                'target' => '"Tutorial Masak Rendang"',
-                'time' => '15 Menit lalu',
-                'type' => 'like'
-            ],
-            [
-                'user' => 'Budi Doremi',
-                'avatar' => 'https://i.pravatar.cc/150?u=budi',
-                'action' => 'Melaporkan komentar',
-                'target' => 'Komentar mengandung SARA',
-                'time' => '1 Jam lalu',
-                'type' => 'report' // Ini nanti memicu notifikasi
-            ]
-        ];
+        // Log User
+        $userActivities = ActivityLog::latest()->take(5)->get();
 
         return view('Admin.dashboard', compact('stats', 'chartData', 'pendingNews', 'userActivities'));
     }
 
-    public function berita()
+    public function syncNews(NewsService $newsService)
     {
-        $allNews = $this->getDummyNews(10);
+        $message = $newsService->fetchFromExternalSource();
+        return redirect()->back()->with('success', $message);
+    }
+
+    public function approveNews($id)
+    {
+        $news = News::findOrFail($id);
+        $news->update([
+            'status' => 'published',
+            'is_verified' => true
+        ]);
+
+        ActivityLog::create([
+            'user_name' => 'Admin',
+            'action' => 'Menyetujui Berita',
+            'target' => substr($news->title, 0, 30),
+            'type' => 'approve'
+        ]);
+
+        return redirect()->back()->with('success', 'Berita berhasil dipublish.');
+    }
+
+    // UPDATE: LOGIKA HAPUS PERMANEN
+    public function rejectNews($id)
+    {
+        $news = News::findOrFail($id);
         
-        // GANTI DARI 'Admin.berita.index' MENJADI 'Admin.berita.kelola'
+        // Simpan judul dulu buat log sebelum dihapus
+        $title = $news->title; 
+        
+        // HARD DELETE (Hapus dari database selamanya)
+        $news->delete();
+
+        // Catat log bahwa admin menghapus berita
+        ActivityLog::create([
+            'user_name' => 'Admin',
+            'action' => 'Menghapus Berita',
+            'target' => substr($title, 0, 30),
+            'type' => 'delete'
+        ]);
+
+        return redirect()->back()->with('success', 'Berita berhasil dihapus permanen.');
+    }
+
+    public function berita(Request $request)
+    {
+        $query = News::latest();
+
+        if ($request->has('search')) {
+            $query->where('title', 'like', '%'.$request->search.'%');
+        }
+
+        $allNews = $query->paginate(10);
+
         return view('Admin.berita.kelola', compact('allNews'));
     }
 
-    public function users()
+    public function users(Request $request)
     {
-        // Dummy Data Users
-        $users = [
-            ['id' => 1, 'name' => 'Asep Knalpot', 'email' => 'asep@mail.com', 'joined' => '12 Jan 2025', 'status' => 'Active'],
-            ['id' => 2, 'name' => 'Siti Aminah', 'email' => 'siti@mail.com', 'joined' => '10 Feb 2025', 'status' => 'Active'],
-            ['id' => 3, 'name' => 'Joko Anwar', 'email' => 'joko@mail.com', 'joined' => '05 Mar 2025', 'status' => 'Banned'],
-        ];
+        $users = User::latest()->paginate(10);
         return view('Admin.users.index', compact('users'));
     }
-
+    
     public function userActivity($id)
     {
-        // Detail aktivitas user tertentu (Nanti di view bisa dibuat list timeline)
-        return "Halaman Detail Aktivitas User ID: " . $id;
-    }
-
-    private function getDummyNews($limit = 10) {
-        // (Helper sama seperti sebelumnya)
-        $data = [];
-        for($i=1; $i<=$limit; $i++) {
-            $data[] = [
-                'id' => $i,
-                'title' => 'Contoh Berita Dummy Admin Panel No ' . $i,
-                'category' => ($i % 2 == 0) ? 'Teknologi' : 'Politik',
-                'author' => 'Admin',
-                'date' => date('d M Y'),
-                'status' => ($i % 3 == 0) ? 'Draft' : 'Published', 
-                'image' => 'https://images.unsplash.com/photo-1612151855475-877969f4a6cc?q=80&w=200&auto=format&fit=crop',
-            ];
-        }
-        return $data;
+        return "Detail aktivitas user ID: " . $id;
     }
 }
