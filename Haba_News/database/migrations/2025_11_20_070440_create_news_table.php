@@ -11,16 +11,18 @@ return new class extends Migration
         Schema::create('news', function (Blueprint $table) {
             $table->id();
             $table->string('title');
-            $table->string('slug')->unique(); // Untuk URL SEO friendly
+            $table->string('slug')->unique();
             $table->text('desc')->nullable();
             $table->longText('content')->nullable();
-            $table->string('image')->nullable();
+            
+            // PERUBAHAN DISINI: Ganti string() jadi text()
+            $table->text('image')->nullable(); 
+            
             $table->string('category');
             $table->string('author')->default('Admin');
-            $table->string('source')->nullable(); // Asal berita (CNN, NewsAPI, dll)
+            $table->string('source')->nullable();
             $table->enum('status', ['draft', 'published', 'rejected'])->default('draft');
-
-            // Field Khusus Logic Verifikasi AI
+            
             $table->boolean('is_verified')->default(false);
             $table->integer('ai_trust_score')->default(0); 
             $table->string('ai_analysis')->nullable();

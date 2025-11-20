@@ -12,7 +12,13 @@
         .font-serif-heading { font-family: 'Merriweather', serif; }
         .bg-primary-dark { background-color: #3b3b58; }
         .btn-yellow { background-color: #dcb14a; color: #3b3b58; }
+        
+        /* Styling khusus untuk konten artikel agar rapi */
         .article-content p { margin-bottom: 1.5rem; line-height: 1.8; color: #374151; }
+        .article-content h3 { margin-top: 2rem; margin-bottom: 1rem; font-weight: 700; font-size: 1.25rem; color: #1f2937; }
+        .article-content blockquote { border-left-width: 4px; border-color: #3b82f6; padding-left: 1rem; font-style: italic; color: #4b5563; margin-bottom: 1.5rem; background-color: #f9fafb; padding: 1rem; border-radius: 0 0.5rem 0.5rem 0; }
+        .article-content ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 1.5rem; }
+        .article-content li { margin-bottom: 0.5rem; }
     </style>
 </head>
 <body class="bg-white">
@@ -63,15 +69,16 @@
 
                 {{-- GAMBAR UTAMA (FIXED ASPECT RATIO & COVER) --}}
                 <div class="w-full mb-8 rounded-2xl overflow-hidden shadow-sm border border-gray-100 aspect-video">
-                    {{-- UPDATE: Ditambahkan onerror --}}
+                    {{-- Menambahkan onerror untuk gambar --}}
                     <img src="{{ $news->image }}" 
                          alt="Main News" 
                          class="w-full h-full object-cover block"
                          onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=600&auto=format&fit=crop';">
                 </div>
 
+                {{-- PERBAIKAN UTAMA: Hapus e() dan nl2br() karena konten sudah HTML --}}
                 <div class="article-content text-lg text-gray-800 leading-relaxed mb-10 border-b border-gray-200 pb-10">
-                    {!! nl2br(e($news->content)) !!}
+                    {!! $news->content !!}
                 </div>
             </div>
 
@@ -118,7 +125,6 @@
                         @foreach($relatedNews as $related)
                         <a href="{{ route('berita.detail', $related->id) }}" class="flex space-x-3 group cursor-pointer p-2 hover:bg-gray-50 rounded-lg transition">
                             <div class="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0 bg-gray-200">
-                                {{-- UPDATE: Ditambahkan onerror --}}
                                 <img src="{{ $related->image }}" 
                                      class="w-full h-full object-cover group-hover:scale-110 transition duration-300"
                                      onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=600&auto=format&fit=crop';">
