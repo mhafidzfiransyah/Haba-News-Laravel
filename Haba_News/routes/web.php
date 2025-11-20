@@ -27,5 +27,7 @@ Route::prefix('admin')->group(function () {
     // Route Baru
     Route::get('/users', [App\Http\Controllers\AdminController::class, 'users'])->name('admin.users');
     Route::get('/users/{id}/activity', [App\Http\Controllers\AdminController::class, 'userActivity'])->name('admin.users.activity');
+
+    //mantap
 });
 
