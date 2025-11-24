@@ -7,9 +7,9 @@
         <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari berita..." class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 text-sm shadow-sm">
         <i class="fas fa-search absolute left-3 top-3 text-gray-400 text-sm"></i>
     </form>
-    <button class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-blue-700 transition shadow-lg flex items-center">
+    <!-- <button class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-blue-700 transition shadow-lg flex items-center">
         <i class="fas fa-plus mr-2"></i> Tambah Manual
-    </button>
+    </button> -->
 </div>
 
 <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
@@ -67,9 +67,9 @@
                     </td>
                     <td class="px-6 py-4 text-center">
                         <div class="flex justify-center space-x-2">
-                            <button class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-100">
+                            <!-- <button class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-100">
                                 <i class="fas fa-pen text-xs"></i>
-                            </button>
+                            </button> -->
                             <form action="{{ route('admin.reject', $item->id) }}" method="POST" onsubmit="return confirm('Hapus?')">
                                 @csrf
                                 <button class="w-8 h-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center hover:bg-red-100">

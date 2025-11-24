@@ -63,10 +63,10 @@ class BerandaController extends Controller
         // TAPI: Kalau sedang difilter kategori, kita biarkan saja muncul lagi di bawah
         // supaya user tetap bisa melihat berita tersebut dalam konteks kategorinya.
         // (Opsional: kalau mau strict exclude, uncomment baris bawah ini)
-        // if ($activeCategory === 'Semua') {
+        if ($activeCategory === 'Semua') {
              $excludeIds = collect([$heroNews->id ?? 0])->merge($subHeroNews->pluck('id'));
              $query->whereNotIn('id', $excludeIds);
-        // }
+        }
 
         $newsList = $query->paginate(6);
 

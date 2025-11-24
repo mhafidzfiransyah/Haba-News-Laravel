@@ -33,7 +33,6 @@ class BeritaController extends Controller
     {
         $request->validate([
             'text' => 'required|string|max:500',
-            'name' => 'required|string|max:50'
         ]);
 
         $news = News::findOrFail($id);
@@ -41,17 +40,18 @@ class BeritaController extends Controller
         // Simpan Komentar
         Comment::create([
             'news_id' => $id,
-            'name' => $request->name,
+            'user_id' => auth()->id(), // simpan id user
+            'name' => auth()->user()->name, // ambil nama dari user login
             'text' => $request->text,
-            'avatar' => 'https://ui-avatars.com/api/?name=' . urlencode($request->name) . '&background=random'
+            'avatar' => 'https://ui-avatars.com/api/?name=' . urlencode(auth()->user()->name) . '&background=random'
         ]);
 
         // PERBAIKAN: Simpan ke Activity Log
         // Pastikan model ActivityLog sudah di import di atas
         ActivityLog::create([
-            'user_name' => $request->name, // Ambil nama dari input form
+            'user_name' => auth()->user()->name,
             'action' => 'Mengomentari berita',
-            'target' => substr($news->title, 0, 30) . '...', // Potong judul biar ga kepanjangan
+            'target' => substr($news->title, 0, 30) . '...',
             'type' => 'comment'
         ]);
 

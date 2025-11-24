@@ -43,18 +43,11 @@
     </div>
 </div>
 
+{{-- 2. GRAFIK PENGUNJUNG --}}
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-    {{-- 2. GRAFIK PENGUNJUNG --}}
     <div class="lg:col-span-2 bg-white rounded-xl shadow-sm p-6">
         <div class="flex justify-between items-center mb-4">
             <h3 class="font-bold text-gray-800 text-lg">Statistik 7 Hari Terakhir</h3>
-            {{-- Tombol Tarik Berita API --}}
-            <form action="{{ route('admin.sync') }}" method="POST">
-                @csrf
-                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-2 rounded-lg shadow transition">
-                    <i class="fas fa-sync mr-1"></i> Sync NewsAPI
-                </button>
-            </form>
         </div>
         <div class="relative h-64 w-full">
             <canvas id="visitorChart"></canvas>
@@ -99,10 +92,18 @@
             <div class="bg-red-100 text-red-600 p-2 rounded-lg"><i class="fas fa-robot"></i></div>
             <div>
                 <h3 class="font-bold text-gray-800 text-lg">Verifikasi AI & Draft</h3>
+                {{-- Tombol untuk tarik berita dari NewsAPI --}}
                 <p class="text-xs text-gray-500">Menampilkan berita yang perlu review Admin</p>
             </div>
         </div>
+        <form action="{{ route('admin.sync') }}" method="POST">
+            @csrf
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-2 rounded-lg shadow transition">
+                <i class="fas fa-sync mr-1"></i> Sync NewsAPI
+            </button>
+        </form>
     </div>
+
     
     <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse">
@@ -111,7 +112,14 @@
                     <th class="px-6 py-4">Berita</th>
                     <th class="px-6 py-4">AI Score</th>
                     <th class="px-6 py-4">Kategori</th>
-                    <th class="px-6 py-4 text-center">Aksi</th>
+                    <th class="px-6 py-4 text-center">Aksi
+                        <form action="{{ route('admin.deleteAll') }}" method="POST" class="inline-block ml-2" onsubmit="return confirm('Hapus semua berita pending?');">
+                            @csrf
+                            <button type="submit" class="px-2 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700">
+                                Hapus Semua
+                            </button>
+                        </form>
+                    </th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
@@ -215,6 +223,7 @@
                     scales: {
                         y: { 
                             beginAtZero: true, 
+                            suggestedMax: 3,
                             grid: { borderDash: [2, 4] },
                             ticks: { stepSize: 1 }
                         },

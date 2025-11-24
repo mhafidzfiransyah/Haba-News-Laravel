@@ -93,12 +93,26 @@
                         <div class="bg-green-100 text-green-700 p-2 text-sm rounded mb-2">{{ session('success') }}</div>
                     @endif
 
-                    <form action="{{ route('berita.komentar', $news->id) }}" method="POST" class="mb-6">
-                        @csrf
-                        <input type="text" name="name" placeholder="Nama Kamu" required class="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 mb-2 text-sm focus:outline-none focus:border-blue-500">
-                        <textarea name="text" required placeholder="Tuliskan Komentar..." class="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 focus:outline-none focus:border-blue-500 text-sm h-20 resize-none mb-2"></textarea>
-                        <button type="submit" class="btn-yellow text-primary-dark font-bold py-2 px-4 rounded text-sm w-full hover:opacity-90 transition">Kirim Komentar</button>
-                    </form>
+                    <div class="mt-6 mb-4">
+                    @auth
+                        <form action="{{ route('berita.komentar', $news->id) }}" method="POST" class="space-y-2">
+                            @csrf
+                            <textarea name="text" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder="Tulis komentar..." rows="4" required></textarea>
+                            <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">
+                                Kirim
+                            </button>
+                        </form>
+                    @else
+                        <!-- Kotak Info Jika Belum Login -->
+                        <div class="border border-gray-300 bg-gray-50 p-4 rounded-lg text-center">
+                            <p class="text-gray-700 mb-2">Anda harus login untuk menulis komentar.</p>
+                            <a href="{{ route('login') }}" 
+                            class="inline-block px-4 py-2 bg-primary-dark text-white rounded-lg hover:bg-indigo-700 transition">
+                            Login Sekarang
+                            </a>
+                        </div>
+                    @endauth
+                </div>
 
                     <div class="space-y-6 max-h-[500px] overflow-y-auto pr-2">
                         @forelse($comments as $comment)

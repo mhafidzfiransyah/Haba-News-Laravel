@@ -45,4 +45,16 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function comments()
+    {
+        return $this->hasMany(Comment::class);
+    }
+
+    // Tambahkan juga relasi untuk membedakan Admin.
+    // Jika Anda menggunakan kolom 'is_admin' di tabel 'users':
+    public function getIsAdminAttribute()
+    {
+        return $this->attributes['is_admin'] ?? false; // Sesuaikan dengan logika Anda
+    }
 }

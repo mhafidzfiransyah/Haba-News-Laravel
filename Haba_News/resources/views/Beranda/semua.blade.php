@@ -31,12 +31,30 @@
             <div class="flex items-center space-x-6 font-medium">
                 <a href="{{ route('beranda') }}" class="text-yellow-400 border-b-2 border-yellow-400 pb-1">Beranda</a>
                 <a href="{{ route('about') }}" class="hover:text-yellow-400 transition">About</a>
-                <a href="{{ route('admin.dashboard') }}" class="btn-yellow px-6 py-2 rounded font-bold hover:brightness-110 transition shadow">Login</a>
+                {{-- JIKA BELUM LOGIN TAMPILKAN LOGIN --}}
+                @guest
+                    <a href="{{ route('login') }}" class="btn-yellow px-6 py-2 rounded font-bold">
+                        Login
+                    </a>
+                @endguest
+
+                <!-- jika sudah login akan tampil dashboard -->
+                @auth
+                    @if(auth()->user()->role === 'admin')
+                        <a href="{{ route('admin.dashboard') }}" class="btn-yellow px-6 py-2 rounded font-bold">
+                            Dashboard
+                        </a>
+                    @else
+                        <a href="{{ route('user.dashboard') }}" class="btn-yellow px-6 py-2 rounded font-bold">
+                            Dashboard
+                        </a>
+                    @endif
+                @endauth
             </div>
         </div>
     </nav>
 
-    <main class="container mx-auto px-4 py-8 max-w-6xl">
+    <main class="container mx-auto px-4 py-9 max-w-9xl">
         
         {{-- HERO SECTION (Sekarang Selalu Muncul) --}}
         @if($heroNews)

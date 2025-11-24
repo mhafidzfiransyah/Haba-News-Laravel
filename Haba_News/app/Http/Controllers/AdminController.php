@@ -102,14 +102,52 @@ class AdminController extends Controller
         return view('Admin.berita.kelola', compact('allNews'));
     }
 
+    //Menampilkan daftar User
     public function users(Request $request)
     {
         $users = User::latest()->paginate(10);
-        return view('Admin.users.index', compact('users'));
+        return view('admin.users.index', compact('users'));
     }
-    
+
+    //Menampilkan detail Usernya
+    public function usersShow($id)
+    {
+        $user = User::findOrFail($id);
+        return view('admin.users.show', compact('user'));
+    }
+
+    //Untuk Hapus User
+    public function usersDestroy($id)
+    {
+        $user = User::findOrFail($id);
+        $user->delete();
+
+        return redirect()->route('admin.users.index')->with('success', 'User berhasil dihapus.');
+    }
+
     public function userActivity($id)
     {
         return "Detail aktivitas user ID: " . $id;
     }
+
+    public function deleteAllNews()
+    {
+        // Ambil semua berita yang belum dipublish
+        $pendingNews = News::where('status', '!=', 'published')->get();
+
+        foreach ($pendingNews as $news) {
+            $title = $news->title;
+            $news->delete(); // model tidak pakai soft delete
+
+            ActivityLog::create([
+                'user_name' => 'Admin',
+                'action' => 'Menghapus Berita',
+                'target' => substr($title, 0, 30),
+                'type' => 'delete'
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Semua berita pending berhasil dihapus.');
+    }
+
 }

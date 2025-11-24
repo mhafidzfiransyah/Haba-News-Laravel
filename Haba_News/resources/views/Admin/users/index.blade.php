@@ -24,12 +24,15 @@
         <tbody class="text-sm divide-y divide-gray-100">
             @forelse($users as $user)
             <tr class="hover:bg-gray-50">
-                <td class="px-6 py-4 text-gray-500">#{{ $user->id }}</td>
+                <!-- mengubah id agar terurut di tabel website -->
+                <td class="px-6 py-4 text-gray-500">#{{ $loop->iteration }}</td> 
                 <td class="px-6 py-4 font-bold text-gray-800">{{ $user->name }}</td>
                 <td class="px-6 py-4 text-gray-600">{{ $user->email }}</td>
                 <td class="px-6 py-4 text-gray-500">{{ $user->created_at->format('d M Y') }}</td>
                 <td class="px-6 py-4 text-center">
-                    <a href="#" class="text-blue-600 hover:underline text-xs font-bold">Detail</a>
+                    <a href="{{ route('admin.users.show', $user->id) }}" class="text-blue-600 hover:underline text-xs font-bold">
+                        Detail
+                    </a>
                 </td>
             </tr>
             @empty
@@ -43,4 +46,5 @@
         {{ $users->links() }}
     </div>
 </div>
+
 @endsection

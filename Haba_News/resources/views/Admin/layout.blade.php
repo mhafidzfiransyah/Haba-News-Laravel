@@ -36,7 +36,7 @@
                 <span class="font-medium">Kelola Berita</span>
             </a>
 
-            <a href="{{ route('admin.users') }}" class="flex items-center px-4 py-3 rounded-lg hover:bg-white/10 transition {{ request()->routeIs('admin.users') ? 'active-nav' : '' }}">
+            <a href="{{ route('admin.users.index') }}" class="flex items-center px-4 py-3 rounded-lg hover:bg-white/10 transition {{ request()->routeIs('admin.users') ? 'active-nav' : '' }}">
                 <i class="fas fa-users w-6"></i>
                 <span class="font-medium">Daftar User</span>
             </a>
@@ -46,6 +46,12 @@
                 <i class="fas fa-sign-out-alt w-6"></i>
                 <span class="font-medium">Keluar ke Web</span>
             </a>
+            <form method="POST" action="{{ route('logout') }}" class="ml-4">
+                @csrf
+                <button class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </form>
         </nav>
     </aside>
 
@@ -60,8 +66,8 @@
             </div>
             <div class="flex items-center space-x-4">
                 <div class="text-right hidden md:block">
-                    <div class="text-sm font-bold text-gray-800">Administrator</div>
-                    <div class="text-xs text-gray-500">Super Admin</div>
+                    <div class="text-sm font-bold text-gray-800">{{ auth()->user()->name }}</div>
+                    <div class="text-xs text-gray-500">{{ auth()->user()->role }}</div>
                 </div>
                 <div class="h-10 w-10 rounded-full bg-gray-300 overflow-hidden border-2 border-gray-200">
                     <img src="https://ui-avatars.com/api/?name=Admin&background=0D8ABC&color=fff" alt="Admin" class="h-full w-full object-cover">
