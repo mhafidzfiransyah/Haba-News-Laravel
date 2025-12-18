@@ -1,17 +1,38 @@
 @extends('Admin.layout')
+
 @section('title', 'Kelola Berita')
+
 @section('content')
 
-<div class="flex justify-between items-center mb-6">
-    <form action="{{ route('admin.berita') }}" method="GET" class="relative">
-        <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari berita..." class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 text-sm shadow-sm">
+{{-- ACTION BAR --}}
+<div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+
+    {{-- Search --}}
+    <form action="{{ route('admin.berita') }}" method="GET" class="relative w-full md:w-auto">
+        <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari berita..." class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 text-sm shadow-sm w-full">
         <i class="fas fa-search absolute left-3 top-3 text-gray-400 text-sm"></i>
     </form>
-    <!-- <button class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-blue-700 transition shadow-lg flex items-center">
-        <i class="fas fa-plus mr-2"></i> Tambah Manual
-    </button> -->
+
+    {{-- Action Buttons --}}
+    <div class="flex space-x-3">
+        {{-- TOMBOL HAPUS SEMUA (BARU) --}}
+        <form action="{{ route('admin.berita.deleteAll') }}" method="POST" onsubmit="return confirm('PERINGATAN: Apakah Anda yakin ingin menghapus SEMUA berita? Tindakan ini tidak dapat dibatalkan!');">
+            @csrf
+            @method('DELETE')
+            <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-red-700 transition shadow-lg flex items-center">
+                <i class="fas fa-trash-alt mr-2"></i> Hapus Semua
+            </button>
+        </form>
+
+        {{-- Add Button (Dummy/Placeholder) --}}
+        <button class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-blue-700 transition shadow-lg flex items-center">
+            <i class="fas fa-plus mr-2"></i> Tambah Berita
+        </button>
+    </div>
+
 </div>
 
+{{-- TABLE CARD --}}
 <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
     <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse">
@@ -32,11 +53,10 @@
                     <td class="px-6 py-4">
                         <div class="flex items-center">
                             <div class="w-14 h-14 rounded-lg overflow-hidden flex-shrink-0 mr-4 bg-gray-200 border border-gray-200">
-                                {{-- UPDATE: Ditambahkan onerror --}}
                                 <img src="{{ $item->image }}" 
                                      class="w-full h-full object-cover" 
                                      alt="Thumb"
-                                     onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=600&auto=format&fit=crop';">
+                                     onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=600&auto=format&fit=crop';">
                             </div>
                             <div>
                                 <div class="font-bold text-gray-800 line-clamp-1 hover:text-blue-600 cursor-pointer">
@@ -67,12 +87,9 @@
                     </td>
                     <td class="px-6 py-4 text-center">
                         <div class="flex justify-center space-x-2">
-                            <!-- <button class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-100">
-                                <i class="fas fa-pen text-xs"></i>
-                            </button> -->
-                            <form action="{{ route('admin.reject', $item->id) }}" method="POST" onsubmit="return confirm('Hapus?')">
+                            <form action="{{ route('admin.reject', $item->id) }}" method="POST" onsubmit="return confirm('Hapus berita ini secara permanen?')">
                                 @csrf
-                                <button class="w-8 h-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center hover:bg-red-100">
+                                <button class="w-8 h-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center hover:bg-red-100 transition" title="Hapus Permanen">
                                     <i class="fas fa-trash text-xs"></i>
                                 </button>
                             </form>
@@ -90,9 +107,10 @@
             </tbody>
         </table>
     </div>
-    
+
     <div class="px-6 py-4 border-t border-gray-100">
         {{ $allNews->withQueryString()->links() }}
     </div>
 </div>
+
 @endsection

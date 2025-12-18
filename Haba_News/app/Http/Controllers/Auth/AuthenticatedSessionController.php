@@ -32,7 +32,8 @@ class AuthenticatedSessionController extends Controller
 
         return match ($role) {
             'admin' => redirect()->route('admin.dashboard'),
-            'user'  => redirect()->route('user.dashboard'),
+            // UPDATE DI SINI: User biasa diarahkan ke home ('/'), bukan user.dashboard
+            'user' => redirect('/'), 
             default => redirect('/'),
         };
     }

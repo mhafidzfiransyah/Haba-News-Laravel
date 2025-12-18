@@ -7,6 +7,14 @@
 {{-- TAMBAHKAN CDN CHART.JS --}}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+{{-- UPDATE: TOMBOL PINTAS KE WEBSITE --}}
+<div class="flex justify-end mb-6">
+    <a href="{{ route('beranda') }}" target="_blank" class="bg-indigo-600 text-white px-5 py-2 rounded-lg text-sm font-bold hover:bg-indigo-700 transition shadow-lg flex items-center">
+        <i class="fas fa-external-link-alt mr-2"></i> Lihat Website Berita
+    </a>
+</div>
+
+
 {{-- 1. KARTU STATISTIK --}}
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
     <!-- Kartu Pengunjung -->

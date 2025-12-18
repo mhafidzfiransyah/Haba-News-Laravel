@@ -16,7 +16,7 @@ class AdminController extends Controller
     {
         // Statistik
         $stats = [
-            'total_news' => News::count(), // Ini otomatis berubah kalau ada yang dihapus
+            'total_news' => News::count(),
             'total_visitors' => Visitor::count(),
             'total_users' => User::count(),
             'pending_reports' => News::where('status', 'draft')->count()
@@ -32,10 +32,10 @@ class AdminController extends Controller
         }
         $chartData = ['labels' => $labels, 'data' => $data];
 
-        // Berita Draft
+        // Berita Draft (Pending)
         $pendingNews = News::where('status', 'draft')
-                            ->orderBy('ai_trust_score', 'asc') 
-                            ->get();
+            ->orderBy('ai_trust_score', 'asc')
+            ->get();
 
         // Log User
         $userActivities = ActivityLog::latest()->take(5)->get();
@@ -67,18 +67,12 @@ class AdminController extends Controller
         return redirect()->back()->with('success', 'Berita berhasil dipublish.');
     }
 
-    // UPDATE: LOGIKA HAPUS PERMANEN
     public function rejectNews($id)
     {
         $news = News::findOrFail($id);
-        
-        // Simpan judul dulu buat log sebelum dihapus
-        $title = $news->title; 
-        
-        // HARD DELETE (Hapus dari database selamanya)
+        $title = $news->title;
         $news->delete();
 
-        // Catat log bahwa admin menghapus berita
         ActivityLog::create([
             'user_name' => 'Admin',
             'action' => 'Menghapus Berita',
@@ -92,36 +86,69 @@ class AdminController extends Controller
     public function berita(Request $request)
     {
         $query = News::latest();
-
         if ($request->has('search')) {
-            $query->where('title', 'like', '%'.$request->search.'%');
+            $query->where('title', 'like', '%' . $request->search . '%');
         }
-
         $allNews = $query->paginate(10);
-
         return view('Admin.berita.kelola', compact('allNews'));
     }
 
-    //Menampilkan daftar User
+    // --- FUNGSI BARU: Hapus SEMUA Berita (Dipanggil dari halaman Kelola Berita) ---
+    public function deleteAllContent()
+    {
+        // Hitung jumlah untuk log
+        $count = News::count();
+
+        // Hapus semua data
+        News::query()->delete(); 
+        // Note: query()->delete() lebih aman dibanding truncate() jika ada foreign key constraint
+
+        // Catat Log
+        ActivityLog::create([
+            'user_name' => 'Admin',
+            'action' => 'Menghapus SEMUA Berita',
+            'target' => $count . ' items dibersihkan',
+            'type' => 'delete'
+        ]);
+
+        return redirect()->back()->with('success', 'Database berita berhasil dikosongkan.');
+    }
+
+    // --- FUNGSI LAMA: Hapus Draft Only (Dipanggil dari Dashboard) ---
+    public function deleteAllNews()
+    {
+        $pendingNews = News::where('status', '!=', 'published')->get();
+        foreach ($pendingNews as $news) {
+            $news->delete();
+        }
+        
+        ActivityLog::create([
+            'user_name' => 'Admin',
+            'action' => 'Membersihkan Draft',
+            'target' => 'Semua draft dihapus',
+            'type' => 'delete'
+        ]);
+
+        return redirect()->back()->with('success', 'Semua berita pending berhasil dihapus.');
+    }
+
+    // -- USER MANAGEMENT --
     public function users(Request $request)
     {
         $users = User::latest()->paginate(10);
-        return view('admin.users.index', compact('users'));
+        return view('Admin.users.index', compact('users'));
     }
 
-    //Menampilkan detail Usernya
     public function usersShow($id)
     {
         $user = User::findOrFail($id);
-        return view('admin.users.show', compact('user'));
+        return view('Admin.users.show', compact('user'));
     }
 
-    //Untuk Hapus User
     public function usersDestroy($id)
     {
         $user = User::findOrFail($id);
         $user->delete();
-
         return redirect()->route('admin.users.index')->with('success', 'User berhasil dihapus.');
     }
 
@@ -129,25 +156,4 @@ class AdminController extends Controller
     {
         return "Detail aktivitas user ID: " . $id;
     }
-
-    public function deleteAllNews()
-    {
-        // Ambil semua berita yang belum dipublish
-        $pendingNews = News::where('status', '!=', 'published')->get();
-
-        foreach ($pendingNews as $news) {
-            $title = $news->title;
-            $news->delete(); // model tidak pakai soft delete
-
-            ActivityLog::create([
-                'user_name' => 'Admin',
-                'action' => 'Menghapus Berita',
-                'target' => substr($title, 0, 30),
-                'type' => 'delete'
-            ]);
-        }
-
-        return redirect()->back()->with('success', 'Semua berita pending berhasil dihapus.');
-    }
-
 }

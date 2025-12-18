@@ -26,15 +26,15 @@
         <nav class="flex-1 px-4 py-6 space-y-2">
             <p class="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Menu Utama</p>
             
-            <a href="{{ route('user.dashboard') }}" class="flex items-center px-4 py-3 rounded-lg hover:bg-white/10 transition {{ request()->routeIs('admin.dashboard') ? 'active-nav' : '' }}">
+            <a href="{{ route('beranda') }}" class="flex items-center px-4 py-3 rounded-lg hover:bg-white/10 transition {{ request()->routeIs('admin.dashboard') ? 'active-nav' : '' }}">
                 <i class="fas fa-tachometer-alt w-6"></i>
                 <span class="font-medium">Dashboard</span>
             </a>
 
             <p class="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 mt-6">Lainnya</p>
             <a href="{{ route('beranda') }}" class="flex items-center px-4 py-3 rounded-lg hover:bg-white/10 transition text-red-300">
-                <i class="fas fa-sign-out-alt w-6"></i>
-                <span class="font-medium">Keluar ke Web</span>
+
+   
             </a>
             <form method="POST" action="{{ route('logout') }}" class="ml-4">
                 @csrf

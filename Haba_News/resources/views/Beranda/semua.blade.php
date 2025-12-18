@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HABA NEWS - {{ $activeCategory ?? 'Beranda' }}</title>
+    <title>HABA NEWS {{ $activeCategory ?? 'Beranda' }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Merriweather:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Inter:wght@400;600;700&family=Merriweather:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         body { font-family: 'Inter', sans-serif; }
@@ -22,7 +22,7 @@
     <nav class="bg-primary-dark text-white py-4 sticky top-0 z-50 shadow-lg">
         <div class="container mx-auto px-4 flex items-center justify-between">
             <a href="{{ route('beranda') }}" class="text-2xl font-bold text-yellow-500">HABA NEWS</a>
-            
+
             <form action="{{ route('beranda') }}" method="GET" class="hidden md:flex flex-1 mx-10 max-w-lg relative">
                 <input type="text" name="q" placeholder="Cari berita..." value="{{ request('q') }}" class="w-full py-2 px-4 rounded-full text-gray-700 focus:outline-none shadow-inner">
                 <button type="submit" class="absolute right-3 top-2.5 text-gray-400"><i class="fas fa-search"></i></button>
@@ -31,41 +31,63 @@
             <div class="flex items-center space-x-6 font-medium">
                 <a href="{{ route('beranda') }}" class="text-yellow-400 border-b-2 border-yellow-400 pb-1">Beranda</a>
                 <a href="{{ route('about') }}" class="hover:text-yellow-400 transition">About</a>
-                {{-- JIKA BELUM LOGIN TAMPILKAN LOGIN --}}
+
                 @guest
                     <a href="{{ route('login') }}" class="btn-yellow px-6 py-2 rounded font-bold">
                         Login
                     </a>
                 @endguest
 
-                <!-- jika sudah login akan tampil dashboard -->
                 @auth
+                    {{-- Jika Admin, tampilkan tombol Dashboard --}}
                     @if(auth()->user()->role === 'admin')
-                        <a href="{{ route('admin.dashboard') }}" class="btn-yellow px-6 py-2 rounded font-bold">
-                            Dashboard
-                        </a>
-                    @else
-                        <a href="{{ route('user.dashboard') }}" class="btn-yellow px-6 py-2 rounded font-bold">
+                        <a href="{{ route('admin.dashboard') }}" class="hover:text-yellow-400 transition mr-2">
                             Dashboard
                         </a>
                     @endif
+
+                    {{-- DROPDOWN PROFIL --}}
+                    <div class="relative inline-block text-left">
+                        <div>
+                            <button type="button" onclick="toggleDropdown()" class="flex items-center space-x-2 focus:outline-none" id="menu-button">
+                                <img src="https://ui-avatars.com/api/?name={{ urlencode(auth()->user()->name) }}&background=dcb14a&color=3b3b58" 
+                                     alt="Profile" 
+                                     class="h-9 w-9 rounded-full object-cover border-2 border-yellow-500">
+                                <span class="text-white font-semibold hidden md:block">{{ Str::limit(auth()->user()->name, 10) }}</span>
+                                <i class="fas fa-chevron-down text-xs text-yellow-400"></i>
+                            </button>
+                        </div>
+
+                        <div id="profile-dropdown" class="hidden absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                            <div class="py-1">
+                                {{-- Link ke Ganti Password --}}
+                                <a href="{{ route('profile.edit') }}" class="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100">
+                                    <i class="fas fa-key mr-2 text-gray-400"></i> Ganti Password
+                                </a>
+                                
+                                <form method="POST" action="{{ route('logout') }}">
+                                    @csrf
+                                    <button type="submit" class="text-red-600 block w-full text-left px-4 py-2 text-sm hover:bg-red-50">
+                                        <i class="fas fa-sign-out-alt mr-2"></i> Logout
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
                 @endauth
             </div>
         </div>
     </nav>
 
     <main class="container mx-auto px-4 py-9 max-w-9xl">
-        
-        {{-- HERO SECTION (Sekarang Selalu Muncul) --}}
+
+        {{-- HERO SECTION --}}
         @if($heroNews)
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
             {{-- Hero Utama --}}
             <div class="lg:col-span-2 bg-gray-100 rounded-xl overflow-hidden shadow-sm group flex flex-col relative">
                 <a href="{{ route('berita.detail', $heroNews->id) }}" class="block w-full h-64 md:h-96 relative overflow-hidden">
-                    <img src="{{ $heroNews->image }}" 
-                         alt="Hero" 
-                         class="w-full h-full object-cover group-hover:scale-105 transition duration-700"
-                         onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=600&auto=format&fit=crop';">
+                    <img src="{{ $heroNews->image }}" alt="Hero" class="w-full h-full object-cover group-hover:scale-105 transition duration-700" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=600&auto=format&fit=crop';">
                 </a>
                 <div class="p-6 bg-gray-200 flex-1">
                     <div class="flex items-center space-x-2 mb-2">
@@ -79,14 +101,12 @@
                 </div>
             </div>
 
-            {{-- Sub Hero (Side) --}}
+            {{-- Sub Hero --}}
             <div class="flex flex-col space-y-6">
                 @foreach($subHeroNews as $item)
                 <div class="bg-gray-200 rounded-xl overflow-hidden shadow-sm flex flex-col h-full group">
                     <a href="{{ route('berita.detail', $item->id) }}" class="block w-full h-40 relative overflow-hidden">
-                        <img src="{{ $item->image }}" 
-                             class="w-full h-full object-cover group-hover:scale-105 transition duration-500"
-                             onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=600&auto=format&fit=crop';">
+                        <img src="{{ $item->image }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=600&auto=format&fit=crop';">
                     </a>
                     <div class="p-4 flex-1 flex flex-col justify-center">
                         <div class="flex space-x-2 mb-1 items-center">
@@ -95,7 +115,6 @@
                         <a href="{{ route('berita.detail', $item->id) }}">
                             <h3 class="font-bold text-gray-800 text-sm leading-snug mb-2 hover:text-blue-600 transition line-clamp-2">{{ $item->title }}</h3>
                         </a>
-                        {{-- TAMBAHAN: Deskripsi untuk Sub-Hero --}}
                         <p class="text-gray-500 text-xs line-clamp-2 leading-relaxed">{{ $item->desc }}</p>
                     </div>
                 </div>
@@ -104,24 +123,15 @@
         </div>
         @endif
 
-        {{-- KATEGORI SCROLL (Dengan Efek Fade Kiri Kanan) --}}
+        {{-- KATEGORI SCROLL --}}
         <div class="relative mb-10">
-            {{-- Gradient Kiri --}}
             <div class="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none"></div>
-            
-            {{-- Scroll Container --}}
             <div class="flex space-x-3 overflow-x-auto hide-scroll pb-2 px-4">
                 <a href="{{ route('beranda') }}" class="{{ ($activeCategory === 'Semua') ? 'bg-blue-500 text-white shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-gray-200' }} px-6 py-2 rounded-full text-sm font-medium whitespace-nowrap transition transform hover:scale-105">Semua</a>
-                
                 @foreach($categories as $cat)
-                    <a href="{{ route('kategori', strtolower(str_replace(' ', '-', $cat))) }}" 
-                       class="{{ strtolower($activeCategory) === strtolower($cat) ? 'bg-blue-500 text-white shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-gray-200' }} px-6 py-2 rounded-full text-sm font-medium whitespace-nowrap transition transform hover:scale-105">
-                       {{ $cat }}
-                    </a>
+                <a href="{{ route('kategori', strtolower(str_replace(' ', '-', $cat))) }}" class="{{ strtolower($activeCategory) == strtolower($cat) ? 'bg-blue-500 text-white shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-gray-200' }} px-6 py-2 rounded-full text-sm font-medium whitespace-nowrap transition transform hover:scale-105">{{ $cat }}</a>
                 @endforeach
             </div>
-
-            {{-- Gradient Kanan --}}
             <div class="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none"></div>
         </div>
 
@@ -140,10 +150,7 @@
             @forelse($newsList as $news)
             <div class="bg-white border border-gray-100 rounded-xl p-0 md:p-4 shadow-sm flex flex-col md:flex-row gap-0 md:gap-6 overflow-hidden md:overflow-visible hover:shadow-md transition group">
                 <a href="{{ route('berita.detail', $news->id) }}" class="w-full md:w-1/3 h-48 md:h-40 md:aspect-video relative flex-shrink-0 overflow-hidden md:rounded-lg block">
-                    <img src="{{ $news->image }}" 
-                         alt="{{ $news->title }}" 
-                         class="w-full h-full object-cover group-hover:scale-105 transition duration-500"
-                         onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=600&auto=format&fit=crop';">
+                    <img src="{{ $news->image }}" alt="{{ $news->title }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=600&auto=format&fit=crop';">
                 </a>
                 <div class="w-full md:w-2/3 p-4 md:p-0 flex flex-col justify-center">
                     <div class="flex items-center space-x-2 mb-2">
@@ -158,7 +165,7 @@
                     <p class="text-gray-600 text-sm leading-relaxed line-clamp-2 mb-3">{{ $news->desc }}</p>
                     <div class="text-xs text-gray-400 mt-auto flex items-center">
                         <i class="far fa-clock mr-1"></i> {{ $news->created_at->diffForHumans() }}
-                        <span class="mx-2">•</span>
+                        <span class="mx-2">|</span>
                         <i class="far fa-eye mr-1"></i> {{ $news->views }} Views
                     </div>
                 </div>
@@ -176,11 +183,25 @@
         <div class="mt-12 flex justify-center">
             {{ $newsList->withQueryString()->links('pagination::tailwind') }}
         </div>
-
     </main>
 
     <footer class="bg-primary-dark text-gray-300 py-12 mt-20 text-center">
         <p>&copy; 2025 Haba News. All rights reserved.</p>
     </footer>
+
+    <script>
+        function toggleDropdown() {
+            var dropdown = document.getElementById("profile-dropdown");
+            dropdown.classList.toggle("hidden");
+        }
+        window.onclick = function(event) {
+            if (!event.target.closest('#menu-button')) {
+                var dropdown = document.getElementById("profile-dropdown");
+                if (dropdown && !dropdown.classList.contains('hidden')) {
+                    dropdown.classList.add('hidden');
+                }
+            }
+        }
+    </script>
 </body>
 </html>
