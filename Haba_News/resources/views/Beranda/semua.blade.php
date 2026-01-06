@@ -29,7 +29,7 @@
             </form>
 
             <div class="flex items-center space-x-6 font-medium">
-                <a href="{{ route('beranda') }}" class="text-yellow-400 border-b-2 border-yellow-400 pb-1">Beranda</a>
+                <a href="{{ route('beranda') }}" class="text-yellow-400 border-b-2 border-yellow-400 pb-1">Home</a>
                 <a href="{{ route('about') }}" class="hover:text-yellow-400 transition">About</a>
 
                 @guest

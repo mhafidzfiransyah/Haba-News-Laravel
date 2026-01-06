@@ -22,7 +22,7 @@
             <a href="{{ route('beranda') }}" class="text-2xl font-bold text-yellow-500">HABA NEWS</a>
 
             <div class="flex items-center space-x-6 font-medium">
-                <a href="{{ route('beranda') }}" class="hover:text-yellow-400 transition">Beranda</a>
+                <a href="{{ route('beranda') }}" class="hover:text-yellow-400 transition">Home</a>
                 <a href="{{ route('about') }}" class="text-yellow-400 border-b-2 border-yellow-400 pb-1">About</a>
 
                 @guest
